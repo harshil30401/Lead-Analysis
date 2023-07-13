@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from typing import Dict
 from models import AudioRequest, AudioResponse
 from helper import get_analysis, convert_url
+from starlette.responses import HTMLResponse
 
 
 app = FastAPI(
@@ -17,7 +18,34 @@ app = FastAPI(
 
 @app.get("/", tags=["Index"])
 def index():
-    return {"message": "EchoSensai"}
+    html_content = """
+    <html>
+        <head>
+            <style>
+                body {
+                    background-color: black;
+                    color: white;
+                    font-family: Verdana, sans-serif;
+                    overflow: hidden
+                }
+                .center {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    text-align: center;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="center">
+                <h1>EchoSensai</h1>
+            </div>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
 
 
 @app.post("/get_call_analysis", tags=["Call Analysis"], response_model=AudioResponse)
