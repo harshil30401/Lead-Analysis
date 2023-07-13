@@ -47,21 +47,27 @@ def convert_url(url: str) -> Union[BytesIO, HTTPException]:
             detail="The server cannot process your request because the provided URL syntax is invalid or malformed!",
         )
 
-    if not url.endswith(".mp3"):
-        raise HTTPException(
-            status_code=400, detail="The provided URL is not an MP3 file!"
-        )
+    try:
+        response = requests.get(url)
 
-    response = requests.get(url)
+        if response.status_code == 200:
+            mp3_content = response.content
+            buffer = BytesIO(mp3_content)
+            buffer.name = "temp.mp3"
+            return buffer
+        elif response.status_code == 404:
+            raise HTTPException(
+                status_code=404, detail="The input resource could not be found!"
+            )
+        else:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail="An error occurred while fetching the MP3 file!",
+            )
 
-    if response.status_code == 200:
-        mp3_content = response.content
-        buffer = BytesIO(mp3_content)
-        buffer.name = "temp.mp3"
-        return buffer
-    elif response.status_code == 404:
+    except requests.RequestException:
         raise HTTPException(
-            status_code=404, detail="The input resource could not be found!"
+            status_code=500, detail="An error occurred while making the HTTP request!"
         )
 
 
@@ -76,11 +82,10 @@ def get_analysis(audio_file) -> Dict[str, str]:
             {
                 "role": "system",
                 "content": """You are a helpful real-estate sales assistant. Based on the transcript log between a human salesperson and a customer, answer the following questions:
-        1. Summary of the call
-        2. What is the next action item?
-        3. What is the customer's sentiment?
-        4. How was the performance of the salesperson
-        """,
+1. Summary of the call
+2. What is the next action item?
+3. What is the customer's sentiment?
+4. How was the performance of the salesperson?""",
             },
             {"role": "user", "content": f"{transcript}"},
         ],
