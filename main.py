@@ -21,10 +21,8 @@ templates = Jinja2Templates(directory="templates")
 
 key = os.getenv("CALL_ANALYSIS_API_KEY")
 
-# Custom API key header
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-# Dependency function to validate API key
 async def get_api_key(api_key_header: str = Security(api_key_header)):
     if api_key_header:
         if api_key_header == key:
@@ -46,4 +44,5 @@ def process(audio_url: AudioRequest, api_key: str = Depends(get_api_key)) -> Dic
     return analysis
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    with app:
+        uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
