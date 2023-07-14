@@ -40,9 +40,9 @@ def index(request: Request):
 @app.post("/get_call_analysis", tags=["Call Analysis"], response_model=AudioResponse)
 def process(audio_url: AudioRequest, api_key: str = Depends(get_api_key)) -> Dict[str, str]:
     print(f"Using audio file at: {audio_url.mp3_url}")
-    analysis = await get_analysis(convert_url(audio_url.mp3_url))
+    analysis = get_analysis(convert_url(audio_url.mp3_url))
     return analysis
 
 if __name__ == "__main__":
     with app:
-        uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+        uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
