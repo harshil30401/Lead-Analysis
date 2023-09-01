@@ -11,7 +11,7 @@ from fastapi import HTTPException
 from named_tuples import AnalysisJSON
 
 openai.api_base = "https://api.openai.com/v1"
-openai.api_key = "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"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.api_type = "open_ai"
 openai.api_version = "2020-10-01"
 
