@@ -1,9 +1,7 @@
 import os
-from datetime import datetime
 from typing import Dict
 
 import uvicorn
-import uuid
 import pymongo
 from fastapi import FastAPI, HTTPException, Request, Security, Depends
 from fastapi.responses import HTMLResponse
@@ -64,8 +62,7 @@ def process(
 
     simple_analysis = db["simple_analysis"]
     obj = {
-        "_id": "sqy-" + str(uuid.uuid4()),
-        "timestamp": str(datetime.now()),
+
         "mp3": audio_url.mp3_url,
         "analysis": analysis.json_object,
         "transcript": analysis.script,
@@ -89,8 +86,7 @@ def process(
 
     detailed_analysis = db["detailed_analysis"]
     obj = {
-        "_id": "sqy-" + str(uuid.uuid4()),
-        "timestamp": str(datetime.now()),
+
         "mp3": audio_url.mp3_url,
         "analysis": analysis.json_object,
         "transcript": analysis.script,
