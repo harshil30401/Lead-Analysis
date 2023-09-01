@@ -1,7 +1,10 @@
 import os
+from datetime import datetime
 from typing import Dict
 
 import uvicorn
+import uuid
+import pymongo
 from fastapi import FastAPI, HTTPException, Request, Security, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -9,6 +12,12 @@ from fastapi.security import APIKeyHeader
 
 from models import AudioRequest, SimpleAudioResponse, DetailedAudioResponse
 from helper import get_analysis_4, get_analysis_8, convert_url
+
+
+MONGODB_URI = os.getenv("MONGODB_URI")
+client = pymongo.MongoClient(MONGODB_URI)
+
+db = client["sqy-call-analysis"]
 
 app = FastAPI(
     title="EchoSensai",
@@ -23,11 +32,9 @@ templates = Jinja2Templates(directory="templates")
 
 key = os.getenv("CALL_ANALYSIS_API_KEY")
 
-# Custom API key header
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-# Dependency function to validate API key
 async def get_api_key(api_key_header: str = Security(api_key_header)):
     if api_key_header:
         if api_key_header == key:
@@ -54,6 +61,17 @@ def process(
     audio_url: AudioRequest, api_key: str = Depends(get_api_key)
 ) -> Dict[str, str]:
     analysis = get_analysis_4(convert_url(audio_url.mp3_url))
+
+    simple_analysis = db["simple_analysis"]
+    obj = {
+        "_id": "sqy-" + str(uuid.uuid4()),
+        "timestamp": datetime.now(),
+        "mp3": audio_url.mp3_url,
+        "analysis": analysis.json_object,
+        "transcript": analysis.script,
+    }
+    simple_analysis.insert_one(obj)
+
     return analysis.json_object
 
 
@@ -68,6 +86,17 @@ def process(
     audio_url: AudioRequest, api_key: str = Depends(get_api_key)
 ) -> Dict[str, str]:
     analysis = get_analysis_8(convert_url(audio_url.mp3_url))
+
+    detailed_analysis = db["detailed_analysis"]
+    obj = {
+        "_id": "sqy-" + str(uuid.uuid4()),
+        "timestamp": datetime.now(),
+        "mp3": audio_url.mp3_url,
+        "analysis": analysis.json_object,
+        "transcript": analysis.script,
+    }
+    detailed_analysis.insert_one(obj)
+
     return analysis.json_object
 
 
